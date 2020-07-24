@@ -1,5 +1,14 @@
 # README.md
 
+## USAGE
+
+```bash
+git clone https://github.com/illumination-k/rnaseq-pipeline.git
+pip install -e .
+# non root user
+pip install --user -e .
+```
+
 ## make salmon index
 
 refer to [this tutorial](https://combine-lab.github.io/alevin-tutorial/2019/selective-alignment/)
