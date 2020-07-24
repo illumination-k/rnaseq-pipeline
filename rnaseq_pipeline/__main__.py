@@ -7,6 +7,8 @@ import subprocess
 import json
 import shutil
 
+import rnaseq_pipeline.utils
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -27,41 +29,6 @@ class ColorfulHandler(logging.StreamHandler):
         record.levelname = mapping[record.levelname]
         super().emit(record)
 
-def select_layout(id):
-    files = [f for f in os.listdir(".") if f.startswith(id) and f.endswith(".fastq")]
-    length = len(files)
-    if length == 0:
-        return "INVALID"
-    elif length == 1:
-        return "SINGLE"
-    elif length == 2:
-        return "PAIRED"
-    else:
-        logger.error(f'{id} files are invalid format! skip this {id} ...')
-        return "INVALID"
-
-def remove_ext_files(ext):
-    files = [f for f in os.listdir(".") if f.endswith(ext)]
-    for f in files:
-        os.remove(f)
-
-def get_result_summary(settings):
-    dirs = [d for d in os.listdir(".") if os.path.isdir(d) and d.endswith("_exp")]
-    result_dict = {}
-    for d in dirs:
-        path = os.path.join(d, "aux_info", "meta_info.json")
-        if os.path.exists(path):
-            with open(path, "r") as f:
-                result = json.load(f)
-                result_dict[d.split("_")[0]] = str(result["percent_mapped"])
-        else:
-            logger.error(f'meta info does not exist in {d}, please check manually...')
-
-    with open(settings["name"] + "_result.csv", "w") as f:
-        L = ["SRA_ID", "MappingPercentage"]
-        for k, v in result_dict.items():
-            L.append(k + "," + v)
-        f.write("\n".join(L))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -145,7 +112,7 @@ def main():
                     for fasterq_tmp_dir in fasterq_tmp_dirs:
                         shutil.rmtree(fasterq_tmp_dir)
 
-        layout = select_layout(sra_id)
+        layout = utils.select_layout(sra_id)
 
         if layout == 'SINGLE':
             fastp_command = container_command + [preprocess_container, "fastp", 
@@ -184,7 +151,7 @@ def main():
             continue
 
         logger.debug("delete fastq files....")
-        remove_ext_files(".fastq")
+        utils.remove_ext_files(".fastq")
 
         logger.debug("salmon command", salmon_command)
         logger.info("\trun salmon...")
@@ -198,7 +165,7 @@ def main():
             continue
 
         logger.debug("delete trim fastq files....")
-        remove_ext_files(".fastq.gz")
+        utils.remove_ext_files(".fastq.gz")
 
         logger.info(f'+++++ end {sra_id} +++++\n')
     
@@ -220,7 +187,7 @@ def main():
         logger.error("Integrating reports step is failed!")
 
     
-    get_result_summary(settings)
+    utils.get_result_summary(settings)
 
 
     with open(settings['name'] + "_error_ids.txt", "w") as f:
