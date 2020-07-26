@@ -112,7 +112,7 @@ def main():
                     for fasterq_tmp_dir in fasterq_tmp_dirs:
                         shutil.rmtree(fasterq_tmp_dir)
 
-        layout = utils.select_layout(sra_id)
+        layout = rnaseq_pipeline.utils.select_layout(sra_id)
 
         if layout == 'SINGLE':
             fastp_command = container_command + [preprocess_container, "fastp", 
@@ -151,7 +151,7 @@ def main():
             continue
 
         logger.debug("delete fastq files....")
-        utils.remove_ext_files(".fastq")
+        rnaseq_pipeline.utils.remove_ext_files(".fastq")
 
         logger.debug("salmon command", salmon_command)
         logger.info("\trun salmon...")
@@ -165,7 +165,7 @@ def main():
             continue
 
         logger.debug("delete trim fastq files....")
-        utils.remove_ext_files(".fastq.gz")
+        rnaseq_pipeline.utils.remove_ext_files(".fastq.gz")
 
         logger.info(f'+++++ end {sra_id} +++++\n')
     
@@ -187,7 +187,7 @@ def main():
         logger.error("Integrating reports step is failed!")
 
     
-    utils.get_result_summary(settings)
+    rnaseq_pipeline.utils.get_result_summary(settings)
 
 
     with open(settings['name'] + "_error_ids.txt", "w") as f:
